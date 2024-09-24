@@ -68,9 +68,9 @@ class Partition:
 
         # summation of sum_i^c
         for value in self.F[feature]:
-            data_if_x_is_v = [example for example in self.data if example.features[feature] == value]
-            entropy_cond = entropy_cond + (len(data_if_x_is_v)/self.n) * self.cond_entropy(data_wihtout_itself=data_if_x_is_v)
-
+            if self.n != 0:
+                data_if_x_is_v = [example for example in self.data if example.features[feature] == value]
+                entropy_cond = entropy_cond + (len(data_if_x_is_v)/self.n) * self.cond_entropy(data_wihtout_itself=data_if_x_is_v)
         return entropy_total - entropy_cond
     
 '''

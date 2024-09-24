@@ -4,6 +4,7 @@ TODO: high level comment, author, and date
 
 import util
 import argparse
+from DecisionTree import *
 
 def get_args():
     """Parse command line arguments (train and test arff files)."""
@@ -29,9 +30,11 @@ def main():
     test_partition  = util.read_arff(args.test_filename, False)
 
     # TODO:create an instance of the DecisionTree class from the train_partition
+    decision_tree = DecisionTree(train_partition)
+    # depth from args
 
     # TODO: print text representation of the DecisionTree
-
+    decision_tree.print_self()
     # TODO: evaluate the decision tree on the test_partition
 
 if __name__ == '__main__':

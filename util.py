@@ -9,7 +9,6 @@ from collections import OrderedDict
 
 # my file imports
 from Partition import *
-
 from typing import List
 
 def read_arff(filename: str, train: bool) -> Partition:
