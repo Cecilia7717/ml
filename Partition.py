@@ -24,8 +24,17 @@ class Partition:
         # dictionary. key=feature name: value=set of possible values
         self.F = F
         self.n = len(self.data)
-
-
+        self.entropy = self._entropy
+    
+    def is_continuous(self, feature: str) -> bool:
+        """Determine if a feature is continuous."""
+        return all(isinstance(example.features[feature], (int, float)) for example in self.data)
+    
+    def get(self, index):
+        print(f"herehere{self.F[index].features}")
+        """Get the features of a specific example in the partition."""
+        return self.F[index].features 
+    
     def _prob(self, c: int) -> float:
         """Compute P(Y=c)."""
         if self.n == 0:
@@ -34,7 +43,7 @@ class Partition:
         prob = label_num[c] / self.n
         return prob
 
-    def entropy(self) -> float:
+    def _entropy(self) -> float:
         """compute entropy"""
         sum = 0
         labels = [-1, 1]
@@ -45,32 +54,77 @@ class Partition:
                 sum = sum - single
         return sum
         
-    def cond_entropy(self, data_wihtout_itself: List[Example]) -> float:
+    def _cond_entropy(self, feature_name:str, feature_value) -> float:
         """compute conditional entropy"""
         """H(Y|X = v) here is the entropy of the subset of the data where feature X's value is v"""
-        if not data_wihtout_itself:
+        subset = [example for example in self.data if example.features[feature_name] == feature_value]
+        if not subset:
             return 0.0
-        # here should has either only 1 or only -1, since the full dataset only has {1, -1}
-        label_left = Counter(example.label for example in data_wihtout_itself)
+        
+        label_counts = Counter(example.label for example in subset)
         entropy = 0.0
-        for label in label_left.values():
+        for count in label_counts.values():
             # P(y_i|X=v)
-            prob = label/len(data_wihtout_itself)
+            prob = count / len(subset)
             if prob > 0:
-                entropy = entropy - prob * math.log2(prob)
+                entropy -= prob * math.log2(prob)
         return entropy
 
-    def infor_gain(self, feature: str) -> float:
+    def _full_cond_entropy(self, feature_name) -> float:
+        """H(Y|X)"""
+        cond_entropy = 0.0
+        for feature_value in self.F[feature_name]:
+            subset = [example for example in self.data if example.features[feature_name] == feature_value]
+            prob = len(subset) / self.n
+            if len(subset) > 0:
+                cond_entropy += prob * self._cond_entropy(feature_name, feature_value)
+        return cond_entropy
+
+    def best_threshould(self, feature_name):
+        """find the features with the maximum information gain"""
+        feature_values = [example.features[feature_name] for example in self.data]
+        sorted_values = sorted(set(feature_values))
+        
+        best_threshold = None
+        max_info_gain = float('-inf')
+
+        # Try each midpoint between sorted feature values as a potential threshold
+        for i in range(1, len(sorted_values)):
+            threshold = (sorted_values[i - 1] + sorted_values[i]) / 2
+            info_gain = self._info_gain_thre(threshold, feature_name)
+
+            if info_gain > max_info_gain:
+                max_info_gain = info_gain
+                best_threshold = threshold
+
+        return best_threshold
+    
+    def _info_gain_thre(self, threshold, feature):
+        examples_below = [ex for ex in self.partition.data if ex.features[feature] <= threshold]
+        examples_above = [ex for ex in self.partition.data if ex.features[feature] > threshold]
+
+        infor_below = self._info_gain(examples_below)
+        infor_above = self._info_gain(examples_above)
+
+        return max(infor_below, infor_above)
+    
+    def best_feature(self):
+        """find the features with the maximum information gain"""
+        best_ig = -float('inf')
+        best_feature = None
+        for feature in self.F:
+            ig = self._info_gain(feature)
+            if ig > best_ig:
+                best_feature = feature
+                best_ig = ig
+        return best_feature
+    
+    def _info_gain(self, feature: str) -> float:
         """compute information gain here"""
         # H(Y)
-        entropy_total = self.entropy()
-        entropy_cond = 0.0
-
-        # summation of sum_i^c
-        for value in self.F[feature]:
-            if self.n != 0:
-                data_if_x_is_v = [example for example in self.data if example.features[feature] == value]
-                entropy_cond = entropy_cond + (len(data_if_x_is_v)/self.n) * self.cond_entropy(data_wihtout_itself=data_if_x_is_v)
+        entropy_total = self._entropy()
+        # H(Y|X)
+        entropy_cond = self._full_cond_entropy(feature)
         return entropy_total - entropy_cond
     
 '''

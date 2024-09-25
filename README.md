@@ -1,6 +1,6 @@
 ## CS 383 HW02 - Decision Trees
 
-Name:
+Name: Cecilia Chen
 
 userId:
 
@@ -31,5 +31,7 @@ assignments in the future)
 
 2. How difficult did you find this homework? (1-5, with 5 being very difficult and 1
   being very easy)
+  4
 
 3. Describe the biggest challenge you faced on this homework:
+  split the value for continous value

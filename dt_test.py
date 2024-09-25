@@ -15,7 +15,7 @@ import util
 class TestSequenceFunctions(unittest.TestCase):
 
     def setUp(self):
-        self.data = util.read_arff("input/movies_train.arff", 0)
+        self.data = util.read_arff("data/movies_train.arff", 0)
         return
 
     def test_prob(self):
@@ -46,10 +46,10 @@ class TestSequenceFunctions(unittest.TestCase):
     def _test_dataset(self, category, overfit=False, max_depth=-1):
         train = None
         if overfit:
-          train = util.read_arff(f"input/{category}_test.arff", True)
+          train = util.read_arff(f"data/{category}_test.arff", True)
         else:
-          train = util.read_arff(f"input/{category}_train.arff", True)
-        test = util.read_arff(f"input/{category}_test.arff", False)
+          train = util.read_arff(f"data/{category}_train.arff", True)
+        test = util.read_arff(f"data/{category}_test.arff", False)
         dtree = None
         if max_depth == -1:
           dtree = DecisionTree(train)

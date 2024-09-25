@@ -13,6 +13,7 @@ class DecisionTree:
     self.feature = None
     self.positive_count = 0
     self.negative_count = 0
+    self.split_value = None 
 
     # depth here is depth left
     if not (self._stop(partition, depth)):
@@ -42,7 +43,7 @@ class DecisionTree:
   def find_best_feature(self):
         # Placeholder function to find the best feature to split on
         return next(iter(self.partition.F))
-  
+  '''
   def split_partition(self):
     """split the partition here"""
     remaining_features = {f: values for f, values in self.partition.F.items() if f != self.feature}
@@ -73,17 +74,45 @@ class DecisionTree:
             self.children_node[value] = DecisionTree(
                 Partition([], remaining_features), depth=0
             )
+'''
+  def split_partition(self):
+    """split the partition here"""
+    if self._stop(self.partition, self.depth):
+        return  # Stop further splitting
+    
+    # Determine remaining features for child nodes
+    remaining_features = {f: values for f, values in self.partition.F.items() if f != self.feature}
+
+    # Check if the feature is continuous
+    if self.partition.is_continuous(self.feature):
+        # Find the best threshold to split on
+        self.split_value = self.best_threshould(self.feature)
+
+        # Split the data into two groups: <= threshold and > threshold
+        examples_below_threshold = [ex for ex in self.partition.data if ex.features[self.feature] <= best_threshold]
+        examples_above_threshold = [ex for ex in self.partition.data if ex.features[self.feature] > best_threshold]
+
+        # Create partitions for both groups
+        below_partition = Partition(examples_below_threshold, remaining_features)
+        above_partition = Partition(examples_above_threshold, remaining_features)
+
+        # Recursively create child nodes
+        self.children_node[f'<= {self.split_value}'] = DecisionTree(below_partition, depth=self.depth - 1)
+        self.children_node[f'> {self.split_value}'] = DecisionTree(above_partition, depth=self.depth - 1)
+    else:
+        # If the feature is categorical, proceed as before
+        for value in self.partition.F[self.feature]:
+            examples_feature_f = [ex for ex in self.partition.data if ex.features[self.feature] == value]
+            new_partition = Partition(examples_feature_f, remaining_features)
+            if examples_feature_f:
+                self.children_node[value] = DecisionTree(new_partition, depth=self.depth - 1)
+            else:
+                # If no examples, create a leaf node with the majority label
+                self.children_node[value] = DecisionTree(Partition([], remaining_features), depth=0)
 
   def best_feature(self, partition):
     """find the features with the maximum information gain"""
-    best_ig = -float('inf')
-    best_feature = None
-    for feature in partition.F:
-      ig = partition.infor_gain(feature)
-      if ig > best_ig:
-        best_feature = feature
-        best_ig = ig
-    return best_feature
+    return partition.best_feature()
 
   def _stop(self, partition, current_depth) -> bool:
     """Check the stopping criteria."""
@@ -101,17 +130,28 @@ class DecisionTree:
       return True
     return False
 
-  # test
   def classify(self, test_features) -> int:
     """Classify a test example by traversing the tree."""
     if self._isleaf:
         return self.label
-    feature_value = test_features[self.feature]
-    if feature_value in self.children_node:
-        return self.children_node[feature_value].classify(test_features)
-    else:
-        return self.label
-
+    if self.partition.is_continuous(self.feature):
+      feature_value = test_features.get(self.feature)
+      print(feature_value)
+      # Assuming self.split_value holds the threshold for continuous features
+      if feature_value <= self.split_value:
+          return self.children_node['left'].classify(test_features)
+      else:
+          return self.children_node['right'].classify(test_features)
+    else: 
+        feature_value = test_features.get(self.feature)
+    
+        if feature_value in self.children_node:
+            # Recursively call classify on the child node
+            return self.children_node[feature_value].classify(test_features)
+        else:
+            # If the feature value is not in the children, return the current node's label
+            return self.label
+    
   def print_self(self, tabs=0):
     indent = "    " * tabs  # Create indentation based on the level of depth
     label_count = Counter(ex.label for ex in self.partition.data)
