@@ -8,6 +8,8 @@ Date: 9/23/2024
 from typing import List, Dict
 from collections import Counter
 import math
+from collections import defaultdict
+
 class Example:
 
     def __init__(self, features: Dict, label: int) -> None:
@@ -26,12 +28,17 @@ class Partition:
         self.n = len(self.data)
         self.entropy = self._entropy
     
-    def is_continuous(self, feature: str) -> bool:
+    def is_continuous(self, feature) -> bool:
         """Determine if a feature is continuous."""
+        #for example in self.data:
+            # Print the feature value and its type for debugging
+            #print(f"Feature value: {example.features[feature]}, Type: {type(example.features[feature])}")
+        #print(all(isinstance(example.features[feature], (int, float)) for example in self.data))
         return all(isinstance(example.features[feature], (int, float)) for example in self.data)
-    
+
+
     def get(self, index):
-        print(f"herehere{self.F[index].features}")
+        #print(f"herehere{self.F[index].features}")
         """Get the features of a specific example in the partition."""
         return self.F[index].features 
     
@@ -54,54 +61,114 @@ class Partition:
                 sum = sum - single
         return sum
         
-    def _cond_entropy(self, feature_name:str, feature_value) -> float:
-        """compute conditional entropy"""
-        """H(Y|X = v) here is the entropy of the subset of the data where feature X's value is v"""
-        subset = [example for example in self.data if example.features[feature_name] == feature_value]
+    def _cond_entropy(self, feature_name, feature_value) -> float:
+        """Compute conditional entropy H(Y|X = v) for a given feature value."""
+        
+        # Group examples by their feature values using defaultdict
+        grouped_by_feature = defaultdict(list)
+        for example in self.data:
+            #print(f"{feature_name}")
+            feature_name_1 = feature_name
+            if type(feature_name) == list:
+                break
+            grouped_by_feature[example.features[feature_name_1]].append(example)
+        #feature_value = value[feature_name] if type(value) == list else feature_name 
+        # Get the subset of examples for the specific feature value
+        subset = grouped_by_feature.get(feature_value, [])
+        
         if not subset:
             return 0.0
         
+        # Compute the label counts in the subset
         label_counts = Counter(example.label for example in subset)
+        
+        # Compute the entropy
         entropy = 0.0
         for count in label_counts.values():
-            # P(y_i|X=v)
-            prob = count / len(subset)
+            prob = count / len(subset)  # P(y_i | X = v)
             if prob > 0:
                 entropy -= prob * math.log2(prob)
+        
         return entropy
+
+    '''def _full_cond_entropy(self, feature_name) -> float:
+        """H(Y|X)"""
+        cond_entropy = 0.0
+        # Ensure that the feature values are hashable (e.g., using set)
+        feature_values = set(self.F)  # Convert to set if not already
+        #print(feature_values.s)
+        for feature_value in feature_values:
+            subset = [example for example in self.data if example.features[feature_name] == feature_value]
+            if self.n != 0:
+                prob = len(subset) / self.n
+                if len(subset) > 0:
+                    cond_entropy += prob * self._cond_entropy(feature_name, feature_value)
+        return cond_entropy
 
     def _full_cond_entropy(self, feature_name) -> float:
         """H(Y|X)"""
         cond_entropy = 0.0
-        for feature_value in self.F[feature_name]:
-            subset = [example for example in self.data if example.features[feature_name] == feature_value]
-            prob = len(subset) / self.n
-            if len(subset) > 0:
-                cond_entropy += prob * self._cond_entropy(feature_name, feature_value)
+        feature_values = set()
+
+        for example in self.data:
+            value = example.features
+            #print(f"Processing example with features: {value}")  # Debugging print
+            #print(f"Feature name: {feature_name}, Feature value type: {type(value[feature_name])}")
+
+            # Access the feature by name, and handle unhashable types like lists
+            feature_value = value[feature_name] if type(value) == list else feature_name 
+            if isinstance(feature_value, list):
+                feature_value = tuple(feature_value)  # Convert lists to tuples (hashable)
+
+            print(f"Processed feature value: {feature_value}, Type: {type(feature_value)}")  # Debugging print
+
+            feature_values.add(feature_value)
+
+        # Continue with calculating conditional entropy
+        for feature_value in feature_values:
+            print(f"1{type(example)}")
+            print(f"2{type(example.features)}")
+            print(f"3{type(feature_value)}")
+            print(f"4{type(self.data)}")
+
+            subset = [example for example in self.data if (example.features[feature_name] == feature_value)]
+            #subset = [example for example in self.data if (example.features[feature_name] == feature_value if type(example.features) == list )]
+            if self.n != 0:
+                prob = len(subset) / self.n
+                if len(subset) > 0:
+                    cond_entropy += prob * self._cond_entropy(feature_name, feature_value)
+
+        return cond_entropy'''
+
+    def _full_cond_entropy(self, feature_name) -> float:
+        """H(Y|X)"""
+        cond_entropy = 0.0
+        feature_groups = defaultdict(list)
+
+        # Pre-group the examples by feature values
+        for example in self.data:
+            value = example.features
+
+            # Access the feature by name, and handle unhashable types like lists
+            feature_value = value[feature_name] if type(value) == list else feature_name 
+            if isinstance(feature_value, list):
+                feature_value = tuple(feature_value)  # Convert lists to tuples (hashable)
+
+            # Group examples by their feature value
+            feature_groups[feature_value].append(example)
+
+        # Calculate conditional entropy based on pre-grouped examples
+        for feature_value, subset in feature_groups.items():
+            if self.n != 0:
+                prob = len(subset) / self.n
+                if len(subset) > 0:
+                    cond_entropy += prob * self._cond_entropy(feature_name, feature_value)
+
         return cond_entropy
-
-    def best_threshould(self, feature_name):
-        """find the features with the maximum information gain"""
-        feature_values = [example.features[feature_name] for example in self.data]
-        sorted_values = sorted(set(feature_values))
-        
-        best_threshold = None
-        max_info_gain = float('-inf')
-
-        # Try each midpoint between sorted feature values as a potential threshold
-        for i in range(1, len(sorted_values)):
-            threshold = (sorted_values[i - 1] + sorted_values[i]) / 2
-            info_gain = self._info_gain_thre(threshold, feature_name)
-
-            if info_gain > max_info_gain:
-                max_info_gain = info_gain
-                best_threshold = threshold
-
-        return best_threshold
     
     def _info_gain_thre(self, threshold, feature):
-        examples_below = [ex for ex in self.partition.data if ex.features[feature] <= threshold]
-        examples_above = [ex for ex in self.partition.data if ex.features[feature] > threshold]
+        examples_below = [ex for ex in self.data if ex.features[feature] <= threshold]
+        examples_above = [ex for ex in self.data if ex.features[feature] > threshold]
 
         infor_below = self._info_gain(examples_below)
         infor_above = self._info_gain(examples_above)

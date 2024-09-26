@@ -1,5 +1,6 @@
 """
-TODO: high level comment, author, and date
+Author: Cecilia Chen
+Date: 9/23/2024
 """
 
 import util
