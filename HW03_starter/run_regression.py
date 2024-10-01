@@ -34,6 +34,11 @@ def main() -> None :
     # part a: main code for visualizations
     print('Visualizing data...')
 
+    # print(X)
+    # print(y)
+
+    #plot_data(X, y)
+
     ### ========== TODO : END ========== ###
 
 
@@ -57,6 +62,8 @@ def main() -> None :
 
     # test part d, bullets 2-3
     # for alpha = 0.01, soln: w = [2.441; -2.819], iterations = 616
+    # print("hhhh{}".format(train_data.y))
+    print("hhhh{}".format(train_data.X))
     model.fit_SGD(train_data.X, train_data.y, 0.01)
     print('sgd solution: %s' % str(model.coef_))
 

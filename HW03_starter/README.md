@@ -12,7 +12,7 @@ Number of Late Days Using for this homework:
 
 #### Visualization
 
-(a)
+(a) At first, there is only one dot with X = 2 and y = 3. I cannot make an educated guess since there is only one point for known information.
 
 #### Linear Regression
 

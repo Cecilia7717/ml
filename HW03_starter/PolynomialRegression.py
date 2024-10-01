@@ -1,8 +1,8 @@
 """
 Starter code authors: Yi-Chieh Wu, modified by Sara Mathieson, Adam Poliak
-Authors:
-Date:
-Description:
+Authors: Cecilia Chen
+Date: 09/30/2024
+Description: 
 """
 
 # This code was adapted from course material by Jenna Wiens (UMichigan).
@@ -91,6 +91,23 @@ class PolynomialRegression:
 
         ### ========== TODO : START ========== ###
         # part b: modify to create matrix for simple linear model
+        
+        one = np.ones((n, 1))
+        #print("X before concatenation:")
+        #print(X)
+
+        #print("Shape of X:", X.shape)
+
+        # Concatenate the arrays along axis 1 and assign it back to X
+        X = np.concatenate((one, X), axis=1)
+
+        #print("Array of ones:")
+        #print(one)
+
+        #print("X after concatenation:")
+        #print(X)
+
+
         # part f: modify to create matrix for polynomial model
         Phi = X
 
@@ -120,12 +137,11 @@ class PolynomialRegression:
             plt.ylabel(r'$J(w)$')
             plt.ion()
             plt.show()
-
         X = self.generate_polynomial_features(X) # map features
         n,p = X.shape
         self.coef_ = np.zeros(p)                 # coefficients
         err_list  = np.zeros((tmax,1))           # errors per iteration
-
+        print("bbbb{}".format(X))
         # SGD loop
         for t in range(tmax):
 
@@ -134,12 +150,18 @@ class PolynomialRegression:
                 ### ========== TODO : START ========== ###
                 # part d: update self.coef_ using one step of SGD
                 # hint: you can simultaneously update all w's using vector math
+                print(self.predict(X)[i] - y[i])
+                print(y[i].shape)
+                print(self.coef_.shape)
+                print(X[i][1].shape)
+                self.coef_ = self.coef_ - eps * (self.predict(X)[i] - y[i]) * X[i][1]
                 pass
 
             # track error
             # hint: you cannot use self.predict(...) to make the predictions
-            y_pred = y # change this line
+            y_pred = self.coef_[0] + self.coef_[1] * X # change this line
             err_list[t] = np.sum(np.power(y - y_pred, 2)) / float(n)
+            print(err_list)[t]
             ### ========== TODO : END ========== ###
 
             # stop?
@@ -183,7 +205,7 @@ class PolynomialRegression:
         ### ========== TODO : END ========== ###
 
 
-    def predict(self, X: np.ndarray) -> numpy.ndarray:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predict output for X.
         Parameters:
@@ -198,7 +220,11 @@ class PolynomialRegression:
 
         ### ========== TODO : START ========== ###
         # part c: predict y
-        y_pred = self.coef_
+        # h_w(x) = w_0 + w_1x
+        y_pred = self.coef_[0]+self.coef_[1]*X # for simple linear regression case
+
+        #h_w(x) = (w^T)X
+        # y_pred = np.matmul(self.coef_.T, X)
         ### ========== TODO : END ========== ###
 
         return y_pred
@@ -215,6 +241,14 @@ class PolynomialRegression:
         ### ========== TODO : START ========== ###
         # part d: compute J(b)
         cost = 0
+        n, p = X.shape
+        diff = (self.predict(X) - y)
+        diff_sq = np.matmul(diff.T, diff)
+        
+        for i in range (n):
+            cost = cost + diff_sq[i]
+        
+        cost = cost/2
         ### ========== TODO : END ========== ###
         return cost
 
