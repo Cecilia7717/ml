@@ -141,7 +141,7 @@ class PolynomialRegression:
         n,p = X.shape
         self.coef_ = np.zeros(p)                 # coefficients
         err_list  = np.zeros((tmax,1))           # errors per iteration
-        print("bbbb{}".format(X))
+        #print("bbbb{}".format(X))
         # SGD loop
         for t in range(tmax):
 
@@ -150,18 +150,27 @@ class PolynomialRegression:
                 ### ========== TODO : START ========== ###
                 # part d: update self.coef_ using one step of SGD
                 # hint: you can simultaneously update all w's using vector math
-                print(self.predict(X)[i] - y[i])
-                print(y[i].shape)
-                print(self.coef_.shape)
-                print(X[i][1].shape)
-                self.coef_ = self.coef_ - eps * (self.predict(X)[i] - y[i]) * X[i][1]
+
+                # print(self.predict(X)[i])
+                # print(y[i])
+                # print(self.coef_.shape)
+                # print(X[i])
+                
+                self.coef_ = self.coef_ - eta * (self.coef_[0]+self.coef_[1]*X[i] - y[i]) * X[i][1]
                 pass
 
             # track error
             # hint: you cannot use self.predict(...) to make the predictions
             y_pred = self.coef_[0] + self.coef_[1] * X # change this line
-            err_list[t] = np.sum(np.power(y - y_pred, 2)) / float(n)
-            print(err_list)[t]
+            # print(y)
+            # print(np.power(y - y_pred[:, 1], 2))
+            print(np.sum(np.power(y - y_pred[:, 1], 2)) / float(n))
+            err_list[t] = np.sum(np.power(y - y_pred[:, 1], 2)) / float(n)
+            #print(err_list)[t]
+            if np.isinf(err_list[t]) or np.isnan(err_list[t]):
+                break
+            else:
+                print(err_list[t])
             ### ========== TODO : END ========== ###
 
             # stop?
@@ -221,7 +230,7 @@ class PolynomialRegression:
         ### ========== TODO : START ========== ###
         # part c: predict y
         # h_w(x) = w_0 + w_1x
-        y_pred = self.coef_[0]+self.coef_[1]*X # for simple linear regression case
+        y_pred = self.coef_[0] + self.coef_[1] * X # for simple linear regression case
 
         #h_w(x) = (w^T)X
         # y_pred = np.matmul(self.coef_.T, X)

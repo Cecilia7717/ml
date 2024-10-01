@@ -64,7 +64,7 @@ def main() -> None :
     # for alpha = 0.01, soln: w = [2.441; -2.819], iterations = 616
     # print("hhhh{}".format(train_data.y))
     print("hhhh{}".format(train_data.X))
-    model.fit_SGD(train_data.X, train_data.y, 0.01)
+    model.fit_SGD(train_data.X, train_data.y, 0.0001)
     print('sgd solution: %s' % str(model.coef_))
 
     # test part e -- soln: w = [2.446; -2.816]
