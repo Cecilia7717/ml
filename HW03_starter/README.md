@@ -18,10 +18,11 @@ Number of Late Days Using for this homework:
 
 (d) __________________________________________
     |   0.1   |   0.01  |  0.001  |   0.0001  |
-    |   1803  |  17923  |  179113 |   100000  | 
+    |   152   |   615   |   7330  |    64620  | 
     ------------------------------------------
-(e)
+(e) Coefficients compared with those computed from SGD are really similar. The difference becomes smaller first, hit the minimum at α= 0.001, then increase when α gets larger.
 
+The run time is shown in result_record.txt, where we can see the time spent on SGD is way larger than this. And they increase significantly as α gets larger.
 
 #### Polynomial Regression
 

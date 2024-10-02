@@ -4,7 +4,7 @@ Authors:
 Date:
 Description:
 """
-
+import time
 # This code was adapted from course material by Jenna Wiens (UMichigan).
 
 # import libraries
@@ -64,12 +64,16 @@ def main() -> None :
     # for alpha = 0.01, soln: w = [2.441; -2.819], iterations = 616
     # print("hhhh{}".format(train_data.y))
     print("hhhh{}".format(train_data.X))
-    model.fit_SGD(train_data.X, train_data.y, 0.0001)
+    time_b = time.time()
+    model.fit_SGD(train_data.X, train_data.y, 0.01)
     print('sgd solution: %s' % str(model.coef_))
+    print('Time spent to fit_SGD:{}'.format(time.time()-time_b))
 
     # test part e -- soln: w = [2.446; -2.816]
+    time_b = time.time()
     model.fit(train_data.X, train_data.y)
     print('closed_form solution: %s' % str(model.coef_))
+    print('Time spent to fit:{}'.format(time.time()-time_b))
 
     ### ========== TODO : END ========== ###
 
@@ -92,8 +96,13 @@ def main() -> None :
     print(model.rms_error(X, y))
 
     # non-test code (YOUR CODE HERE)
-
+    
     # Check: RMSE for d=0 should be 0.747268364185172
+    model = PolynomialRegression(m = 0)
+    model.generate_polynomial_features(X)
+    model.coef_ = coefm
+    print(model.rms_error(X, y))
+
     ### ========== TODO : END ========== ###
 
 

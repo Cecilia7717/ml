@@ -11,7 +11,7 @@ Description:
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-
+import math
 ######################################################################
 # classes
 ######################################################################
@@ -97,20 +97,24 @@ class PolynomialRegression:
         #print(X)
 
         #print("Shape of X:", X.shape)
-
+        X_org = X
         # Concatenate the arrays along axis 1 and assign it back to X
         X = np.concatenate((one, X), axis=1)
 
         #print("Array of ones:")
         #print(one)
-
         #print("X after concatenation:")
         #print(X)
-
-
+        
         # part f: modify to create matrix for polynomial model
-        Phi = X
-
+        Phi = X  # This is for the w_0 (intercept term)
+        # print(Phi)
+        # Loop through each degree from 1 to the specified degree
+        for d in range(2, self.m_ + 1):
+            # Add each feature raised to the power 'd' to the matrix Phi
+            # print(X)
+            Phi = np.concatenate((Phi, X_org**d), axis=1)
+        print(Phi)
         ### ========== TODO : END ========== ###
 
         return Phi
@@ -150,23 +154,24 @@ class PolynomialRegression:
                 ### ========== TODO : START ========== ###
                 # part d: update self.coef_ using one step of SGD
                 # hint: you can simultaneously update all w's using vector math
-
-                # print(self.predict(X)[i])
-                # print(y[i])
-                # print(self.coef_.shape)
-                # print(X[i])
+                #print("x{}".format(self.coef_))
                 
-                self.coef_ = self.coef_ - eta * (self.coef_[0]+self.coef_[1]*X[i] - y[i]) * X[i][1]
+                c = eta * (np.sum(X[i] * self.coef_) - y[i]) 
+                self.coef_ = self.coef_ - c * X[i]
+                #print(self.coef_)
                 pass
 
             # track error
             # hint: you cannot use self.predict(...) to make the predictions
-            y_pred = self.coef_[0] + self.coef_[1] * X # change this line
-            # print(y)
+            #print("x{}".format(self.coef_))
+            y_pred = np.dot(X, self.coef_)# change this line
+            
+            #print((np.dot(X, self.coef_[1].reshape(2,1))).shape)
             # print(np.power(y - y_pred[:, 1], 2))
-            print(np.sum(np.power(y - y_pred[:, 1], 2)) / float(n))
-            err_list[t] = np.sum(np.power(y - y_pred[:, 1], 2)) / float(n)
+            # print(np.sum(np.power(y - y_pred[:, 1], 2)) / float(n))
+            err_list[t] = np.sum(np.power(y - y_pred, 2)) / float(n)
             #print(err_list)[t]
+            
             if np.isinf(err_list[t]) or np.isnan(err_list[t]):
                 break
             else:
@@ -208,6 +213,10 @@ class PolynomialRegression:
         # part e: implement closed-form solution
         # hint: use np.dot(...) and np.linalg.pinv(...)
         #       be sure to update self.coef_ with your solution
+        a = np.linalg.pinv(np.dot(np.linalg.pinv(X), X))
+        b = np.dot(np.linalg.pinv(X), y)
+        # print("ee{}, and {}".format(b.shape, y.shape))
+        self.coef_ = np.dot(a,b)
 
         # part i: include L_2 regularization
 
@@ -233,7 +242,13 @@ class PolynomialRegression:
         y_pred = self.coef_[0] + self.coef_[1] * X # for simple linear regression case
 
         #h_w(x) = (w^T)X
-        # y_pred = np.matmul(self.coef_.T, X)
+        print(self.coef_.shape)
+        print(X.T.shape)
+        
+        y_pred = np.matmul(X, self.coef_.reshape(-1, 1))
+        
+        # Flatten the result to get a scalar prediction
+        y_pred = y_pred.flatten()
         ### ========== TODO : END ========== ###
 
         return y_pred
@@ -253,11 +268,13 @@ class PolynomialRegression:
         n, p = X.shape
         diff = (self.predict(X) - y)
         diff_sq = np.matmul(diff.T, diff)
-        
+        print("a{}".format(diff_sq))
         for i in range (n):
-            cost = cost + diff_sq[i]
+            cost = cost + diff_sq
+            print("cost{}".format(cost))
         
         cost = cost/2
+        print("cost{}".format(cost))
         ### ========== TODO : END ========== ###
         return cost
 
@@ -273,7 +290,27 @@ class PolynomialRegression:
         """
         ### ========== TODO : START ========== ###
         # part g: compute RMSE
-        error = 0
+        n,p = X.shape
+        y_pred = self.predict(X)
+        print("y_pred:{}".format(y_pred))
+        e = 0
+        #for i in range (n):
+            # diff = np.sum(X[i] * self.coef_ - y[i])
+        diff = (self.cost(X, y))
+        print(type(diff))
+        error = math.sqrt(2 * diff / n)
+        """
+        y_pred = self.predict(X)  # Assuming a `predict` function exists
+        print("y_pred:{}".format(y_pred))
+        print("y:{}".format(y))
+        # Compute the squared differences between predictions and actual values
+        squared_errors = (y_pred - y) ** 2
+        
+        # Compute the mean of the squared errors
+        sum_squared_error = 0.5 * np.sum(squared_errors)
+        
+        # Take the square root of the mean squared error to get RMSE
+        error = np.sqrt((2 * sum_squared_error) / n)"""
         ### ========== TODO : END ========== ###
         return error
 

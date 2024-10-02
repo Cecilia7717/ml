@@ -1,0 +1,27 @@
+0.1: 
+number of iterations: 152
+sgd solution: [ 2.38405089 -2.87906028]
+Time spent to fit_SGD:0.08608198165893555
+closed_form solution: [ 2.44640709 -2.81635359]
+Time spent to fit:0.00016570091247558594
+
+0.01: 
+number of iterations: 616
+sgd solution: [ 2.44078184 -2.81863861]
+Time spent to fit_SGD:0.38394689559936523
+closed_form solution: [ 2.44640709 -2.81635359]
+Time spent to fit:0.000186920166015625
+
+0.001:
+number of iterations: 7330
+sgd solution: [ 2.44555307 -2.81594059]
+Time spent to fit_SGD:4.232231140136719
+closed_form solution: [ 2.44640709 -2.81635359]
+Time spent to fit:0.0001990795135498047
+
+0.0001:
+number of iterations: 64620
+sgd solution: [ 2.44509281 -2.81382739]
+Time spent to fit_SGD:37.15088987350464
+closed_form solution: [ 2.44640709 -2.81635359]
+Time spent to fit:0.002624034881591797
