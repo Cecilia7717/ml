@@ -208,7 +208,7 @@ class PolynomialRegression:
         """
 
         X = self.generate_polynomial_features(X) # map features
-
+        n, p = X.shape
         ### ========== TODO : START ========== ###
         # part e: implement closed-form solution
         # hint: use np.dot(...) and np.linalg.pinv(...)
@@ -268,19 +268,36 @@ class PolynomialRegression:
         """
         ### ========== TODO : START ========== ###
         # part d: compute J(b)
-        cost = 0
-        n, p = X.shape
-        diff = (self.predict(X) - y)
-        diff_sq = np.matmul(diff.T, diff)
-        print("a{}".format(diff_sq))
-        for i in range (n):
-            cost = cost + diff_sq
+        if self.lambda_ == 0:
+            cost = 0
+            n, p = X.shape
+            diff = (self.predict(X) - y)
+            diff_sq = np.matmul(diff.T, diff)
+            print("a{}".format(diff_sq))
+            for i in range (n):
+                cost = cost + diff_sq
+                print("cost{}".format(cost))
+            
+            cost = cost/2
             print("cost{}".format(cost))
-        
-        cost = cost/2
-        print("cost{}".format(cost))
-        ### ========== TODO : END ========== ###
-        return cost
+            ### ========== TODO : END ========== ###
+            return cost
+        else:
+            
+            # Compute predictions
+            predictions = self.predict(X)
+
+            # Calculate the residuals
+            residuals = predictions - y
+            
+            # Calculate the L2 regularization term
+            l2_penalty = (self.lambda_ / 2) * np.sum(self.coef_[1:] ** 2)  # Exclude the bias term
+
+            # Calculate the mean squared error
+            mse = np.sum(residuals ** 2) / (2 * len(y))
+            
+            # Total cost with L2 regularization
+            return mse + l2_penalty
 
 
     def rms_error(self, X: np.ndarray, y: np.ndarray) -> float:
