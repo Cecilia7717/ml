@@ -26,7 +26,7 @@ The run time is shown in result_record.txt, where we can see the time spent on S
 
 #### Polynomial Regression
 
-(g)
+(g) RMSE takes the consideration of scale the loss from a^2 back to a vis square root. And also include the consideration of n.
 
 (h)
 

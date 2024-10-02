@@ -219,6 +219,10 @@ class PolynomialRegression:
         self.coef_ = np.dot(a,b)
 
         # part i: include L_2 regularization
+        I = np.eye(p)  # Identity matrix
+        I[0, 0] = 0 
+
+        self.coef_ = np.linalg.pinv(X.T @ X + self.lambda_ * I) @ X.T @ y
 
         ### ========== TODO : END ========== ###
 
