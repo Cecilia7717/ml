@@ -24,16 +24,30 @@ def get_args():
 
 def main():
     opts = get_args()
-    #opts = util.parse_args()
     train_partition = util.read_arff(opts.train_filename, True)
     test_partition  = util.read_arff(opts.test_filename, False)
 
-    # sanity check
-    print("num train =", train_partition.n, ", num classes =", train_partition.K)
-    print("num test  =", test_partition.n, ", num classes =", test_partition.K)
+    # Sanity check
+    # print("num train =", train_partition.n, ", num classes =", train_partition.K)
+    # print("num test  =", test_partition.n, ", num classes =", test_partition.K)
 
+    # Initialize Naive Bayes model
     nb_model = NaiveBayes(train_partition)
-    
+
+    # Evaluate the model on the test set
+    accuracy, confusion_matrix = nb_model.evaluate(test_partition)
+
+    # Output results
+    correct = int(accuracy * test_partition.n)  # Calculate correct count based on accuracy
+    total = test_partition.n
+    print(f"Accuracy: {accuracy:.6f} ({correct} out of {total} correct)")
+    print("\n      prediction")
+    print("   " + "  ".join(str(i) for i in range(nb_model.num_classes)))
+    print(" ---------------------")
+    for i in range(nb_model.num_classes):
+        print(f"{i}| " + "  ".join(str(confusion_matrix[i][j]) for j in range(nb_model.num_classes)))
 
 if __name__ == '__main__':
     main()
+
+
