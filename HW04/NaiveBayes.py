@@ -9,24 +9,21 @@ from util import *
 import numpy as np
 from collections import defaultdict, Counter
 
-import numpy as np
-from collections import defaultdict, Counter
-
 class NaiveBayes:
     def __init__(self, partition: Partition):
-        self.class_probabilities = {}
-        self.feature_probabilities = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+        self.class_probs = {}
+        self.fe_prob = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
         self.class_counts = Counter()
         self.feature_counts = defaultdict(lambda: defaultdict(Counter))
-        self.continuous_feature_stats = defaultdict(lambda: defaultdict(lambda: (0, 0)))  # (mean, variance)
-        self.total_examples = 0
+        self.cont_fe_stats = defaultdict(lambda: defaultdict(lambda: (0, 0)))  # (mean, variance)
+        self.tol = 0
         self.feature_names = []
         self.num_classes = 0
 
         self.train(partition)  # Call train method to initialize model with the given partition
 
     def train(self, partition: Partition):
-        self.total_examples = partition.n
+        self.tol = partition.n
         self.num_classes = partition.K
 
         for example in partition.data:
@@ -36,28 +33,28 @@ class NaiveBayes:
                 if isinstance(value, str):  # Assuming discrete features are strings
                     self.feature_counts[feature][label][value] += 1
                 else:  # Continuous feature
-                    self.continuous_feature_stats[feature][label][0] += value  # Sum for mean
-                    self.continuous_feature_stats[feature][label][1] += value ** 2  # Sum for variance
+                    self.cont_fe_stats[feature][label][0] += value  # Sum for mean
+                    self.cont_fe_stats[feature][label][1] += value ** 2  # Sum for variance
 
         self.feature_names = list(partition.F.keys())
 
         # Calculate probabilities for discrete features
         for label, count in self.class_counts.items():
-            self.class_probabilities[label] = (count + 1) / (self.total_examples + self.num_classes)
+            self.class_probs[label] = (count + 1) / (self.tol + self.num_classes)
 
         for feature in self.feature_names:
-            if feature in self.continuous_feature_stats:  # Check if continuous
+            if feature in self.cont_fe_stats:  # Check if continuous
                 for label in self.class_counts:
                     total_count = self.class_counts[label]
-                    mean = self.continuous_feature_stats[feature][label][0] / total_count
-                    variance = (self.continuous_feature_stats[feature][label][1] / total_count) - (mean ** 2)
-                    self.continuous_feature_stats[feature][label] = (mean, variance)
+                    mean = self.cont_fe_stats[feature][label][0] / total_count
+                    variance = (self.cont_fe_stats[feature][label][1] / total_count) - (mean ** 2)
+                    self.cont_fe_stats[feature][label] = (mean, variance)
             else:  # Discrete feature
                 for label in self.class_counts:
                     total_count = sum(self.feature_counts[feature][label].values())
                     unique_values = len(self.feature_counts[feature][label])
                     for value, count in self.feature_counts[feature][label].items():
-                        self.feature_probabilities[feature][label][value] = (count + 1) / (total_count + unique_values)
+                        self.fe_prob[feature][label][value] = (count + 1) / (total_count + unique_values)
 
     def gaussian_probability(self, x, mean, variance):
         if variance == 0:
@@ -66,15 +63,15 @@ class NaiveBayes:
 
     def classify(self, features):
         log_probs = defaultdict(float)
-        for label in self.class_probabilities:
-            log_probs[label] = np.log(self.class_probabilities[label])
+        for label in self.class_probs:
+            log_probs[label] = np.log(self.class_probs[label])
             for feature, value in features.items():
-                if feature in self.continuous_feature_stats:  # Continuous feature
-                    mean, variance = self.continuous_feature_stats[feature][label]
+                if feature in self.cont_fe_stats:  # Continuous feature
+                    mean, variance = self.cont_fe_stats[feature][label]
                     log_probs[label] += np.log(self.gaussian_probability(value, mean, variance))
                 else:  # Discrete feature
-                    if value in self.feature_probabilities[feature][label]:
-                        log_probs[label] += np.log(self.feature_probabilities[feature][label][value])
+                    if value in self.fe_prob[feature][label]:
+                        log_probs[label] += np.log(self.fe_prob[feature][label][value])
                     else:
                         log_probs[label] += np.log(1 / (sum(self.feature_counts[feature][label].values()) + len(self.feature_counts[feature][label])))
 
